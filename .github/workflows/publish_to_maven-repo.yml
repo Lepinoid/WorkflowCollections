@@ -1,0 +1,59 @@
+name: Publish to maven-repo
+on:
+  workflow_call:
+    inputs:
+      java_version:
+        type: number
+        required: false
+        default: 17
+      repo:
+        type: string
+        required: false
+        default: Lepinoid/maven-repo
+      token_uer:
+        type: string
+        required: false
+        default: lepinoid-project
+      publish_commit_user_email:
+        type: string
+        required: false
+        default: lepinoid@gmail.com
+      publish_commit_user_name:
+        type: string
+        required: false
+        default: lepinoid-project
+    secrets:
+      token:
+        required: true
+      
+
+jobs:
+  publish:
+    if: ${{ github.repository_owner == 'Lepinoid' && !contains(github.event.head_commit.message, '[CI-SKIP]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: gradle/wrapper-validation-action@v1
+
+      - uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: ${{ inputs.java_version }}
+          cache: gradle
+
+      # Generate the build number based on tags to allow per branch build numbers, not something github provides by default.
+      - name: Generate build number
+        id: buildnumber
+        uses: einaregilsson/build-number@v3
+        with:
+          token: ${{ secrets.github_token }}
+          prefix: ${{ github.ref }}
+
+      - name: publish
+        uses: uTen2c/publish-to-github@v1
+        with:
+          repo: ${{ inputs.repo }}
+          token-user: ${{ inputs.token_user }}
+          token: ${{ secrets.token }}
+          commit-user-name: ${{ inputs.publish_commit_user_name }}
+          commit-user-email: ${{ inputs.publish_commit_user_email }}
