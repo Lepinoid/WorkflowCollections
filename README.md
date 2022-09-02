@@ -52,6 +52,5 @@ jobs:
     uses: Lepinoid/WorkflowCollections/.github/workflows/publish_to_maven-repo.yml@main
     with:
       java_version: 11
-    secrets:
-      TOKEN: inherit
+    secrets: inherit
 ```
