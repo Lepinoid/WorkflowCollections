@@ -36,7 +36,7 @@ Publishing to [maven-repo](https://github.com/Lepinoid/maven-repo) task. Require
 
 ### Secrets
 
-- token(This means user token. Not `secrets.github_token`)
+- TOKEN(This means user token. Not `secrets.github_token`)
 
 # Example
 
@@ -53,4 +53,5 @@ jobs:
     with:
       java_version: 11
     secrets:
-      token: ${{ secrets.TOKEN }}
+      TOKEN: inherit
+```
