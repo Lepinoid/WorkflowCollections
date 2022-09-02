@@ -10,7 +10,7 @@ on:
         type: string
         required: false
         default: Lepinoid/maven-repo
-      token_uer:
+      token_user:
         type: string
         required: false
         default: lepinoid-project
