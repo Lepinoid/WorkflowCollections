@@ -37,3 +37,23 @@ Publishing to [maven-repo](https://github.com/Lepinoid/maven-repo) task. Require
 ### Secrets
 
 - token(This means user token. Not `secrets.github_token`)
+
+# Example
+
+```yml
+name: Publish
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    uses: Lepinoid/WorkflowCollections/.github/workflows/publish_to_maven-repo.yml@main
+    with:
+      java_version: 11
+    secrets:
+      token: ${{ secrets.TOKEN }}
