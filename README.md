@@ -30,7 +30,7 @@ Publishing to [maven-repo](https://github.com/Lepinoid/maven-repo) task. Require
 | :------------------------ | ------------------- |
 | java_version              | 17                  |
 | repo                      | Lepinoid/maven-repo |
-| token_uer                 | lepinoid-project    |
+| token_user                 | lepinoid-project    |
 | publish_commit_user_email | lepinoid@gmail.com  |
 | publish_commit_user_name  | lepinoid-project    |
 
