@@ -22,8 +22,8 @@ on:
         type: string
         required: false
         default: lepinoid-project
-      token:
-        type: string
+    secrets:
+      TOKEN:
         required: true
       
 
@@ -54,6 +54,6 @@ jobs:
         with:
           repo: ${{ inputs.repo }}
           token-user: ${{ inputs.token_user }}
-          token: ${{ inputs.token }}
+          token: ${{ secrets.TOKEN }}
           commit-user-name: ${{ inputs.publish_commit_user_name }}
           commit-user-email: ${{ inputs.publish_commit_user_email }}
