@@ -20,7 +20,7 @@ Simple build task
 
 ## [publish_to_maven-repo.yml](.github/workflows/publish_to_maven-repo.yml)
 
-Publishing to [maven-repo](https://github.com/Lepinoid/maven-repo) task. Requires collaborator token.
+Publishing to [maven-repo](https://github.com/Lepinoid/maven-repo) task. Requires collaborator token and GPG key.
 
 `Lepinoid/WorkflowCollections/.github/workflows/publish_to_maven-repo.yml@main`
 
@@ -37,6 +37,8 @@ Publishing to [maven-repo](https://github.com/Lepinoid/maven-repo) task. Require
 ### Secrets
 
 - TOKEN(This means user token. Not `secrets.github_token`)
+- GPG_PRIVATE_KEY
+- GPG_PASSPHRASE
 
 # Example
 
