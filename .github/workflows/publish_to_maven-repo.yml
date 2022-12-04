@@ -45,14 +45,6 @@ jobs:
           java-version: ${{ inputs.java_version }}
           cache: gradle
 
-      # Generate the build number based on tags to allow per branch build numbers, not something github provides by default.
-      - name: Generate build number
-        id: buildnumber
-        uses: einaregilsson/build-number@v3
-        with:
-          token: ${{ secrets.github_token }}
-          prefix: ${{ github.ref }}
-
       - name: Inport GPG key
         uses: crazy-max/ghaction-import-gpg@v5
         with:
