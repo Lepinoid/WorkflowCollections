@@ -10,7 +10,7 @@ on:
       gradle_args:
         type: string
         required: false
-        default: build
+        default: build --stacktrace
 
 jobs:
   build:
