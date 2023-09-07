@@ -18,7 +18,7 @@ jobs:
     if: ${{ github.repository_owner == 'Lepinoid' && !contains(github.event.head_commit.message, '[CI-SKIP]') }}
     steps:
       - uses: actions/checkout@v3
-      - name: Set up JDK 11
+      - name: Set up JDK ${{ inputs.java_version }}
         uses: actions/setup-java@v3
         with:
           java-version: ${{ inputs.java_version }}
@@ -26,7 +26,7 @@ jobs:
 
       - name: Gradle Wrapper Validation
         uses: gradle/wrapper-validation-action@v1
-      - name: Build with Gradle
+      - name: ${{ inputs.gradle_args }} with Gradle
         uses: gradle/gradle-build-action@v2
         with:
           arguments: ${{ inputs.gradle_args }}
