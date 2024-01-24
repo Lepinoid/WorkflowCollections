@@ -18,7 +18,7 @@ on:
       upload_folder:
         type: string
         required: false
-        default: "build/libs"
+        default: build/libs/
 
 jobs:
   build:

@@ -12,10 +12,12 @@ Simple build task
 
 ### Inputs
 
-| name         | default |
-| :----------- | ------- |
-| java_version | 17      |
-| gradle_args  | build   |
+| name             | default     |
+| :--------------- | ----------- |
+| java_version     | 17          |
+| gradle_args      | build       |
+| upload_artifacts | false       |
+| upload_folder    | build/libs/ |
 
 
 ## [publish_to_maven-repo.yml](.github/workflows/publish_to_maven-repo.yml)
