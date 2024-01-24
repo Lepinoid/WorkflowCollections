@@ -11,6 +11,14 @@ on:
         type: string
         required: false
         default: build --stacktrace
+      upload_artifacts:
+        type: boolean
+        required: false
+        default: false
+      upload_folder:
+        type: string
+        required: false
+        default: "build/libs"
 
 jobs:
   build:
@@ -30,3 +38,9 @@ jobs:
         uses: gradle/gradle-build-action@v2
         with:
           arguments: ${{ inputs.gradle_args }}
+      - name: Upload artifact
+        if: ${{ inputs.upload_artifacts }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: Artifacts
+          path: ${{ inputs.upload_folder }}
