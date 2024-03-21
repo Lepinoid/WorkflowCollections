@@ -1,0 +1,31 @@
+name: Validate pull request title
+
+on:
+  workflow_call:
+
+jobs:
+  validate-title:
+    runs-on: ubuntu-latest
+    if: ${{ github.repository_owner == 'Lepinoid' }}
+    steps:
+      - name: Check PR title
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.payload.pull_request.base.user.login;
+            const repo = context.payload.pull_request.base.repo.name;
+            const number = context.payload.pull_request.number;
+            const { data: pullRequest } = await github.rest.pulls.get({
+              owner,
+              repo,
+              pull_number: number
+            });
+            const title = pullRequest.title;
+            core.info(`PR title: ${title}`);
+
+            // Based on https://github.com/arvinxx/gitmoji-commit-workflow/tree/master/packages/gitmoji-regex
+            // https://regex101.com/r/o0Jwkz/1
+            const regex = /^(?::\w*:|(?:\ud83c[\udf00-\udfff])|(?:\ud83d[\udc00-\ude4f\ude80-\udeff])|[\u2600-\u2B55]\ufe0f?)\s(?:(?!#).)*(?:(?!\s).)(?:\s\(?(#\d*)\)?)?$/mg;
+            if (regex.exec(title) === null) {
+              core.setFailed(`Failed to validate title ${title}`);
+            }

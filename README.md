@@ -42,6 +42,12 @@ Publishing to [maven-repo](https://github.com/Lepinoid/maven-repo) task. Require
 - GPG_PRIVATE_KEY
 - GPG_PASSPHRASE
 
+## [validate-pr.yml](.github/workflows/validate-pr.yml)
+
+Validates pull request title
+
+`Lepinoid/WorkflowCollections/.github/workflows/validate-pr.yml@main`
+
 # Example
 
 ```yml
