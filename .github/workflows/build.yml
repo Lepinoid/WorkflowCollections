@@ -35,7 +35,7 @@ jobs:
       - name: Gradle Wrapper Validation
         uses: gradle/wrapper-validation-action@v2
       - name: ${{ inputs.gradle_args }} with Gradle
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@v3
         with:
           arguments: ${{ inputs.gradle_args }}
       - name: Upload artifact
