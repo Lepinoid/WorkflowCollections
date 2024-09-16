@@ -58,6 +58,7 @@ jobs:
       - name: publish
         uses: uTen2c/publish-to-github@v1
         with:
+          publish-path: ${{ github.workspace }}/build/repo
           repo: ${{ inputs.repo }}
           token-user: ${{ inputs.token_user }}
           token: ${{ secrets.TOKEN }}
