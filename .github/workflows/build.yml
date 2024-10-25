@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       java_version:
-        type: number
+        type: string
         required: false
         default: 17
       gradle_args:
