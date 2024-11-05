@@ -6,7 +6,7 @@ on:
       java_version:
         type: string
         required: false
-        default: 17
+        default: ""
       gradle_args:
         type: string
         required: false
@@ -21,15 +21,20 @@ on:
         default: build/libs/
 
 jobs:
+  java-version:
+    if: ${{ !inputs.java_version }}
+    uses: Lepinoid/WorkflowCollections/.github/workflows/get-java-ver.yml@main
+    
   build:
+    needs: java-version
     runs-on: ubuntu-latest
-    if: ${{ github.repository_owner == 'Lepinoid' && !contains(github.event.head_commit.message, '[CI-SKIP]') }}
+    if: ${{ !cancelled() && !failure() && github.repository_owner == 'Lepinoid' && !contains(github.event.head_commit.message, '[CI-SKIP]') }}
     steps:
       - uses: actions/checkout@v4
-      - name: Set up JDK ${{ inputs.java_version }}
+      - name: Set up JDK ${{ inputs.java_version || needs.java-version.java_version }}
         uses: actions/setup-java@v4
         with:
-          java-version: ${{ inputs.java_version }}
+          java-version: ${{ inputs.java_version || needs.java-version.java_version }}
           distribution: 'temurin'
 
       - name: Setup Gradle
