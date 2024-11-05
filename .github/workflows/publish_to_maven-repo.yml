@@ -44,11 +44,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: gradle/wrapper-validation-action@v3
 
-      - name: Setup Java ${{ inputs.java_version || needs.java-version.java_version }}
+      - name: Setup Java ${{ inputs.java_version || needs.java-version.outputs.java_version }}
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: ${{ inputs.java_version || needs.java-version.java_version }}
+          java-version: ${{ inputs.java_version || needs.java-version.outputs.java_version }}
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
