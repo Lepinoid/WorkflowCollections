@@ -2,6 +2,12 @@ name: Get Java version from libs.versions.toml
 
 on: 
   workflow_call:
+    inputs:
+      java_version:
+          type: string
+          description: "Java version. If empty, workflow tries to get version from gradle/libs.versions.toml#java"
+          required: false
+          default: ""
     outputs:
       java_version:
         description: "Detected java version"
@@ -22,4 +28,4 @@ jobs:
           echo "Detected version $V"
           echo "version=$V" >> "$GITHUB_OUTPUT"
     outputs:
-      version: ${{ steps.java.version }}
+      version: ${{ steps.java.outputs.version }}
