@@ -9,12 +9,13 @@ on:
         required: false
         default: ""
 
+permissions:
+  contents: read
+
 jobs:
   get-version:
     runs-on: ubuntu-latest
     if: ${{ inputs.version == '' }}
-    permissions:
-      contents: read
     steps:
       - uses: actions/checkout@v4
       - name: Get ktlint version
@@ -33,7 +34,6 @@ jobs:
     if: ${{ !cancelled() && !failure() && !contains(github.event.head_commit.message, '[CI-SKIP]') }}
     permissions:
       pull-requests: write
-      contents: read
     steps:
       - uses: actions/checkout@v4
       
