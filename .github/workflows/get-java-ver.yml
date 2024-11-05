@@ -14,7 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Get java version from libs.versions.toml
-        if: ${{ inputs.java_version == "" }}
+        if: ${{ inputs.java_version == '' }}
         id: java
         run: |
           # load versions.java from gradle/libs.versions.toml
