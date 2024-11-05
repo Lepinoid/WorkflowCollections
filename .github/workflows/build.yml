@@ -31,10 +31,10 @@ jobs:
     if: ${{ !cancelled() && !failure() && github.repository_owner == 'Lepinoid' && !contains(github.event.head_commit.message, '[CI-SKIP]') }}
     steps:
       - uses: actions/checkout@v4
-      - name: Set up JDK ${{ inputs.java_version || needs.java-version.java_version }}
+      - name: Set up JDK ${{ inputs.java_version || needs.java-version.outputs.java_version }}
         uses: actions/setup-java@v4
         with:
-          java-version: ${{ inputs.java_version || needs.java-version.java_version }}
+          java-version: ${{ inputs.java_version || needs.java-version.outputs.java_version }}
           distribution: 'temurin'
 
       - name: Setup Gradle
