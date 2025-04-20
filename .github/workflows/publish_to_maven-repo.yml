@@ -30,11 +30,13 @@ on:
       GPG_PASSPHRASE:
         required: true
       
+permissions:
+  contents: read
 
 jobs:
   java-version:
     if: ${{ !inputs.java_version }}
-    uses: Lepinoid/WorkflowCollections/.github/workflows/get-java-ver.yml@main
+    uses: Lepinoid/WorkflowCollections/.github/workflows/get-java-ver.yml@b414aaa54ca7f1d32ba10ab17efdce61cb630a63
 
   publish:
     needs: java-version
@@ -42,6 +44,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
       - uses: gradle/wrapper-validation-action@f9c9c575b8b21b6485636a91ffecd10e558c62f6 # v3.5.0
 
       - name: Setup Java ${{ inputs.java_version || needs.java-version.outputs.java_version }}
