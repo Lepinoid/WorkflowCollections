@@ -30,22 +30,22 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ !cancelled() && !failure() && github.repository_owner == 'Lepinoid' && !contains(github.event.head_commit.message, '[CI-SKIP]') }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Set up JDK ${{ inputs.java_version || needs.java-version.outputs.java_version }}
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@17f84c3641ba7b8f6deff6309fc4c864478f5d62 # v3.14.1
         with:
           java-version: ${{ inputs.java_version || needs.java-version.outputs.java_version }}
           distribution: 'temurin'
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@06832c7b30a0129d7fb559bcc6e43d26f6374244 # v4.3.1
 
       - name: Run ${{ inputs.gradle_args }}
         run: ./gradlew ${{ inputs.gradle_args }}
 
       - name: Upload artifact
         if: ${{ inputs.upload_artifacts }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: Artifacts
           path: ${{ inputs.upload_folder }}
