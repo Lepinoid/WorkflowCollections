@@ -26,7 +26,7 @@ permissions:
 jobs:
   java-version:
     if: ${{ !inputs.java_version }}
-    uses: Lepinoid/WorkflowCollections/.github/workflows/get-java-ver.yml@4c9db7efe0b37e800fec1832829fbfbea43983a0
+    uses: Lepinoid/WorkflowCollections/.github/workflows/get-java-ver.yml@a88d69d2633c999ceb0db96f2534bab904373839
     
   build:
     needs: java-version
