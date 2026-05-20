@@ -1,0 +1,77 @@
+name: Test workflows
+
+on:
+  push:
+    branches:
+      - "main"
+    paths:
+      - ".github/workflows/**"
+  pull_request:
+    branches:
+      - "main"
+    paths:
+      - ".github/workflows/**"
+
+permissions:
+  contents: read
+
+jobs:
+  resolve-inputs:
+    runs-on: ubuntu-latest
+    if: >-
+      ${{ github.repository_owner == 'Lepinoid'
+          && (github.event_name != 'pull_request'
+              || github.event.pull_request.head.repo.full_name == github.repository) }}
+    env:
+      TEST_REPO: Lepinoid/LepinoidTools
+      # renovate: datasource=git-refs depName=Lepinoid/LepinoidTools currentValue=main
+      TEST_REF: f72f233b846435e7402c6329ac00dd94bef90591
+    outputs:
+      test_repo: ${{ steps.set.outputs.test_repo }}
+      test_ref: ${{ steps.set.outputs.test_ref }}
+    steps:
+      - id: set
+        run: |
+          echo "test_repo=${TEST_REPO}" >> "$GITHUB_OUTPUT"
+          echo "test_ref=${TEST_REF}" >> "$GITHUB_OUTPUT"
+
+  test-build:
+    needs: resolve-inputs
+    # Reusable workflows cannot elevate permissions beyond the caller job, so pin contracts explicitly.
+    permissions:
+      contents: read
+    uses: ./.github/workflows/build.yml
+    with:
+      test_repo: ${{ needs.resolve-inputs.outputs.test_repo }}
+      test_ref: ${{ needs.resolve-inputs.outputs.test_ref }}
+      gradle_args: check reobfJar
+      upload_artifacts: false
+    secrets:
+      checkout_token: ${{ secrets.LEPINOID_TOOLS_READ_TOKEN }}
+
+  test-ktlint:
+    needs: resolve-inputs
+    # reviewdog (github-pr-review / github-check) needs checks:write and pull-requests:write,
+    # and a called reusable workflow cannot get stronger perms than its caller job.
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
+    uses: ./.github/workflows/ktlint.yml
+    with:
+      test_repo: ${{ needs.resolve-inputs.outputs.test_repo }}
+      test_ref: ${{ needs.resolve-inputs.outputs.test_ref }}
+    secrets:
+      checkout_token: ${{ secrets.LEPINOID_TOOLS_READ_TOKEN }}
+
+  test-publish-dry-run:
+    needs: resolve-inputs
+    permissions:
+      contents: read
+    uses: ./.github/workflows/publish_to_maven-repo.yml
+    with:
+      test_repo: ${{ needs.resolve-inputs.outputs.test_repo }}
+      test_ref: ${{ needs.resolve-inputs.outputs.test_ref }}
+      dry_run: true
+    secrets:
+      checkout_token: ${{ secrets.LEPINOID_TOOLS_READ_TOKEN }}

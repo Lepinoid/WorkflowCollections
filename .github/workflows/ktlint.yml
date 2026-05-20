@@ -8,6 +8,20 @@ on:
         description: "Ktlint version. If empty, workflow tries to get version from gradle/libs.versions.toml#ktlint"
         required: false
         default: ""
+      test_repo:
+        type: string
+        description: "Repository to checkout instead of the caller (used for workflow self-testing)."
+        required: false
+        default: ""
+      test_ref:
+        type: string
+        description: "Ref of test_repo to checkout (used for workflow self-testing)."
+        required: false
+        default: ""
+    secrets:
+      checkout_token:
+        description: "Token used for actions/checkout when test_repo points to a private repository. Falls back to the default GITHUB_TOKEN."
+        required: false
 
 permissions:
   contents: read
@@ -21,7 +35,25 @@ jobs:
       checks: write
       pull-requests: write
     steps:
+      - name: Validate self-test inputs
+        env:
+          TEST_REPO: ${{ inputs.test_repo }}
+          TEST_REF: ${{ inputs.test_ref }}
+        run: |
+          if [ -n "$TEST_REPO" ] && [ -z "$TEST_REF" ]; then
+            echo "::error::test_repo is set but test_ref is empty. They must be specified together."
+            exit 1
+          fi
+          if [ -z "$TEST_REPO" ] && [ -n "$TEST_REF" ]; then
+            echo "::error::test_ref is set but test_repo is empty. They must be specified together."
+            exit 1
+          fi
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          repository: ${{ inputs.test_repo || github.repository }}
+          ref: ${{ inputs.test_ref || github.ref }}
+          token: ${{ secrets.checkout_token || github.token }}
+          persist-credentials: false
       - name: Resolve ktlint version
         id: resolve-version
         env:
@@ -53,7 +85,16 @@ jobs:
       - name: Lint Check
         env:
           REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPORTER: ${{ (github.event_name == 'pull_request' && 'github-pr-review') || 'github-check' }}
+          # For fork PRs the GITHUB_TOKEN is read-only and cannot post review comments or
+          # check-runs, so fall back to the local reporter which simply prints findings.
+          REPORTER: >-
+            ${{
+              (github.event_name == 'pull_request'
+                && github.event.pull_request.head.repo.full_name == github.repository
+                && 'github-pr-review')
+              || (github.event_name == 'pull_request' && 'local')
+              || 'github-check'
+            }}
         run: |
           ktlint --reporter=checkstyle --log-level=none 2>/dev/null | \
           reviewdog -f=checkstyle \

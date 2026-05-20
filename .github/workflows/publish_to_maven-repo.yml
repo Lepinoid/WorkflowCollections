@@ -22,31 +22,84 @@ on:
         type: string
         required: false
         default: lepinoid-project
+      test_repo:
+        type: string
+        description: "Repository to checkout instead of the caller (used for workflow self-testing)."
+        required: false
+        default: ""
+      test_ref:
+        type: string
+        description: "Ref of test_repo to checkout (used for workflow self-testing)."
+        required: false
+        default: ""
+      dry_run:
+        type: boolean
+        description: "If true, skip GPG import and the publish step. Used for workflow self-testing."
+        required: false
+        default: false
     secrets:
       TOKEN:
-        required: true
+        required: false
       GPG_PRIVATE_KEY:
-        required: true
+        required: false
       GPG_PASSPHRASE:
-        required: true
-      
+        required: false
+      checkout_token:
+        description: "Token used for actions/checkout when test_repo points to a private repository. Falls back to the default GITHUB_TOKEN."
+        required: false
+
 permissions:
   contents: read
 
 jobs:
   java-version:
     if: ${{ !inputs.java_version }}
-    uses: Lepinoid/WorkflowCollections/.github/workflows/get-java-ver.yml@4374b993b7f7e6193d7fd2590563d89878003854
+    uses: ./.github/workflows/get-java-ver.yml
+    with:
+      test_repo: ${{ inputs.test_repo }}
+      test_ref: ${{ inputs.test_ref }}
+    secrets:
+      checkout_token: ${{ secrets.checkout_token }}
 
   publish:
     needs: java-version
     if: ${{ !cancelled() && !failure() && github.repository_owner == 'Lepinoid' && !contains(github.event.head_commit.message, '[CI-SKIP]') }}
     runs-on: ubuntu-latest
     steps:
+      - name: Validate self-test inputs
+        env:
+          TEST_REPO: ${{ inputs.test_repo }}
+          TEST_REF: ${{ inputs.test_ref }}
+        run: |
+          if [ -n "$TEST_REPO" ] && [ -z "$TEST_REF" ]; then
+            echo "::error::test_repo is set but test_ref is empty. They must be specified together."
+            exit 1
+          fi
+          if [ -z "$TEST_REPO" ] && [ -n "$TEST_REF" ]; then
+            echo "::error::test_ref is set but test_repo is empty. They must be specified together."
+            exit 1
+          fi
+      - name: Validate publish secrets
+        if: ${{ !inputs.dry_run }}
+        env:
+          TOKEN: ${{ secrets.TOKEN }}
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        run: |
+          missing=()
+          [ -z "$TOKEN" ] && missing+=("TOKEN")
+          [ -z "$GPG_PRIVATE_KEY" ] && missing+=("GPG_PRIVATE_KEY")
+          [ -z "$GPG_PASSPHRASE" ] && missing+=("GPG_PASSPHRASE")
+          if [ ${#missing[@]} -gt 0 ]; then
+            echo "::error::Missing required secrets for non-dry-run publish: ${missing[*]}"
+            exit 1
+          fi
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          repository: ${{ inputs.test_repo || github.repository }}
+          ref: ${{ inputs.test_ref || github.ref }}
+          token: ${{ secrets.checkout_token || github.token }}
           persist-credentials: false
-      - uses: gradle/wrapper-validation-action@f9c9c575b8b21b6485636a91ffecd10e558c62f6 # v3.5.0
 
       - name: Setup Java ${{ inputs.java_version || needs.java-version.outputs.java_version }}
         uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
@@ -54,10 +107,13 @@ jobs:
           distribution: temurin
           java-version: ${{ inputs.java_version || needs.java-version.outputs.java_version }}
 
+      # setup-gradle also validates the wrapper, replacing the deprecated
+      # gradle/wrapper-validation-action that previously ran as a separate step.
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@39e147cb9de83bb9910b8ef8bd7fff0ee20fcd6f # v6.0.1
 
       - name: Import GPG key
+        if: ${{ !inputs.dry_run }}
         uses: crazy-max/ghaction-import-gpg@2dc316deee8e90f13e1a351ab510b4d5bc0c82cd # v7.0.0
         with:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
@@ -66,13 +122,65 @@ jobs:
           git_commit_gpgsign: true
           git_config_global: true
 
+      # Inlined replacement for uTen2c/publish-to-github (no longer maintained):
+      # clone the destination maven-repo into PUBLISH_PATH so the gradle `publish`
+      # task writes artifacts directly into that working copy.
+      - name: Clone maven-repo destination
+        if: ${{ !inputs.dry_run }}
+        env:
+          REPO: ${{ inputs.repo }}
+          BRANCH: main
+          TOKEN_USER: ${{ inputs.token_user }}
+          TOKEN: ${{ secrets.TOKEN }}
+          PUBLISH_PATH: ${{ github.workspace }}/build/repo
+          COMMIT_USER_NAME: ${{ inputs.publish_commit_user_name }}
+          COMMIT_USER_EMAIL: ${{ inputs.publish_commit_user_email }}
+        run: |
+          git config --global user.name "$COMMIT_USER_NAME"
+          git config --global user.email "$COMMIT_USER_EMAIL"
+          git clone --depth=1 -b "$BRANCH" \
+            "https://${TOKEN_USER}:${TOKEN}@github.com/${REPO}" \
+            "$PUBLISH_PATH"
 
-      - name: publish
-        uses: uTen2c/publish-to-github@b93c185edf1c598e9007be7e9b72d51d9f04a047 # v1.2
-        with:
-          publish-path: ${{ github.workspace }}/build/repo
-          repo: ${{ inputs.repo }}
-          token-user: ${{ inputs.token_user }}
-          token: ${{ secrets.TOKEN }}
-          commit-user-name: ${{ inputs.publish_commit_user_name }}
-          commit-user-email: ${{ inputs.publish_commit_user_email }}
+      - name: Publish to maven-repo
+        if: ${{ !inputs.dry_run }}
+        env:
+          PUBLISH_PATH: ${{ github.workspace }}/build/repo
+        run: |
+          chmod +x ./gradlew
+          ./gradlew publish --stacktrace
+
+      - name: Push published artifacts
+        if: ${{ !inputs.dry_run }}
+        working-directory: ${{ github.workspace }}/build/repo
+        env:
+          REPO: ${{ inputs.repo }}
+          BRANCH: main
+          TOKEN_USER: ${{ inputs.token_user }}
+          TOKEN: ${{ secrets.TOKEN }}
+          COMMIT_MESSAGE: "update ${{ github.repository }}"
+        run: |
+          git remote set-url origin "https://${TOKEN_USER}:${TOKEN}@github.com/${REPO}.git"
+          git add .
+          if git diff --cached --quiet; then
+            echo "No changes to publish."
+            exit 0
+          fi
+          git commit -m "$COMMIT_MESSAGE"
+          git push origin "$BRANCH"
+
+      - name: Dry-run gradle publish (no GPG, no push)
+        if: ${{ inputs.dry_run }}
+        # PUBLISH_PATH mirrors what the non-dry-run publish step uses so consumer
+        # build scripts that wire their maven publication target from this env var
+        # actually produce build/repo during dry_run.
+        env:
+          PUBLISH_PATH: ${{ github.workspace }}/build/repo
+        run: |
+          mkdir -p "${PUBLISH_PATH}"
+          chmod +x ./gradlew
+          ./gradlew publish --stacktrace
+          if [ ! -d "${PUBLISH_PATH}" ] || [ -z "$(ls -A "${PUBLISH_PATH}")" ]; then
+            echo "::error::Expected build/repo to contain published artifacts but it is empty."
+            exit 1
+          fi

@@ -2,5 +2,18 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "github>lepinoid/renovate"
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^\\.github/workflows/test-workflows\\.yml$/"
+      ],
+      "matchStrings": [
+        "# renovate: datasource=git-refs depName=(?<depName>[^\\s]+) currentValue=(?<currentValue>[^\\s]+)\\s+TEST_REF:\\s+(?<currentDigest>[a-f0-9]{40})"
+      ],
+      "packageNameTemplate": "https://github.com/{{depName}}",
+      "datasourceTemplate": "git-refs"
+    }
   ]
 }
