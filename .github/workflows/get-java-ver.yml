@@ -8,6 +8,16 @@ on:
           description: "Java version. If empty, workflow tries to get version from gradle/libs.versions.toml#java"
           required: false
           default: ""
+      test_repo:
+          type: string
+          description: "Repository to checkout instead of the caller (used for workflow self-testing)."
+          required: false
+          default: ""
+      test_ref:
+          type: string
+          description: "Ref of test_repo to checkout (used for workflow self-testing)."
+          required: false
+          default: ""
     outputs:
       java_version:
         description: "Detected java version"
@@ -20,8 +30,23 @@ jobs:
   get:
     runs-on: ubuntu-latest
     steps:
+      - name: Validate self-test inputs
+        env:
+          TEST_REPO: ${{ inputs.test_repo }}
+          TEST_REF: ${{ inputs.test_ref }}
+        run: |
+          if [ -n "$TEST_REPO" ] && [ -z "$TEST_REF" ]; then
+            echo "::error::test_repo is set but test_ref is empty. They must be specified together."
+            exit 1
+          fi
+          if [ -z "$TEST_REPO" ] && [ -n "$TEST_REF" ]; then
+            echo "::error::test_ref is set but test_repo is empty. They must be specified together."
+            exit 1
+          fi
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          repository: ${{ inputs.test_repo || github.repository }}
+          ref: ${{ inputs.test_ref || github.ref }}
           persist-credentials: false
       - name: Get java version from libs.versions.toml
         if: ${{ inputs.java_version == '' }}

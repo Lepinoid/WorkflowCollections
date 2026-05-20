@@ -19,6 +19,16 @@ on:
         type: string
         required: false
         default: build/libs/
+      test_repo:
+        type: string
+        description: "Repository to checkout instead of the caller (used for workflow self-testing)."
+        required: false
+        default: ""
+      test_ref:
+        type: string
+        description: "Ref of test_repo to checkout (used for workflow self-testing)."
+        required: false
+        default: ""
 
 permissions:
   contents: read
@@ -26,15 +36,33 @@ permissions:
 jobs:
   java-version:
     if: ${{ !inputs.java_version }}
-    uses: Lepinoid/WorkflowCollections/.github/workflows/get-java-ver.yml@4374b993b7f7e6193d7fd2590563d89878003854
-    
+    uses: ./.github/workflows/get-java-ver.yml
+    with:
+      test_repo: ${{ inputs.test_repo }}
+      test_ref: ${{ inputs.test_ref }}
+
   build:
     needs: java-version
     runs-on: ubuntu-latest
     if: ${{ !cancelled() && !failure() && github.repository_owner == 'Lepinoid' && !contains(github.event.head_commit.message, '[CI-SKIP]') }}
     steps:
+      - name: Validate self-test inputs
+        env:
+          TEST_REPO: ${{ inputs.test_repo }}
+          TEST_REF: ${{ inputs.test_ref }}
+        run: |
+          if [ -n "$TEST_REPO" ] && [ -z "$TEST_REF" ]; then
+            echo "::error::test_repo is set but test_ref is empty. They must be specified together."
+            exit 1
+          fi
+          if [ -z "$TEST_REPO" ] && [ -n "$TEST_REF" ]; then
+            echo "::error::test_ref is set but test_repo is empty. They must be specified together."
+            exit 1
+          fi
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          repository: ${{ inputs.test_repo || github.repository }}
+          ref: ${{ inputs.test_ref || github.ref }}
           persist-credentials: false
       - name: Set up JDK ${{ inputs.java_version || needs.java-version.outputs.java_version }}
         uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
