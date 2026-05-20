@@ -132,7 +132,7 @@ jobs:
           BRANCH: main
           TOKEN_USER: ${{ inputs.token_user }}
           TOKEN: ${{ secrets.TOKEN }}
-          PUBLISH_PATH: ${{ github.workspace }}/build/repo
+          PUBLISH_PATH: build/repo
           COMMIT_USER_NAME: ${{ inputs.publish_commit_user_name }}
           COMMIT_USER_EMAIL: ${{ inputs.publish_commit_user_email }}
         run: |
@@ -145,14 +145,14 @@ jobs:
       - name: Publish to maven-repo
         if: ${{ !inputs.dry_run }}
         env:
-          PUBLISH_PATH: ${{ github.workspace }}/build/repo
+          PUBLISH_PATH: build/repo
         run: |
           chmod +x ./gradlew
           ./gradlew publish --stacktrace
 
       - name: Push published artifacts
         if: ${{ !inputs.dry_run }}
-        working-directory: ${{ github.workspace }}/build/repo
+        working-directory: build/repo
         env:
           REPO: ${{ inputs.repo }}
           BRANCH: main
@@ -175,12 +175,12 @@ jobs:
         # build scripts that wire their maven publication target from this env var
         # actually produce build/repo during dry_run.
         env:
-          PUBLISH_PATH: ${{ github.workspace }}/build/repo
+          PUBLISH_PATH: build/repo
         run: |
           mkdir -p "${PUBLISH_PATH}"
           chmod +x ./gradlew
           ./gradlew publish --stacktrace
-          if [ ! -d "${GITHUB_WORKSPACE}/build/repo" ] || [ -z "$(ls -A "${GITHUB_WORKSPACE}/build/repo")" ]; then
+          if [ ! -d "${PUBLISH_PATH}" ] || [ -z "$(ls -A "${PUBLISH_PATH}")" ]; then
             echo "::error::Expected build/repo to contain published artifacts but it is empty."
             exit 1
           fi
