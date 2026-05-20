@@ -18,6 +18,10 @@ on:
           description: "Ref of test_repo to checkout (used for workflow self-testing)."
           required: false
           default: ""
+    secrets:
+      checkout_token:
+        description: "Token used for actions/checkout when test_repo points to a private repository. Falls back to the default GITHUB_TOKEN."
+        required: false
     outputs:
       java_version:
         description: "Detected java version"
@@ -47,6 +51,7 @@ jobs:
         with:
           repository: ${{ inputs.test_repo || github.repository }}
           ref: ${{ inputs.test_ref || github.ref }}
+          token: ${{ secrets.checkout_token || github.token }}
           persist-credentials: false
       - name: Get java version from libs.versions.toml
         if: ${{ inputs.java_version == '' }}

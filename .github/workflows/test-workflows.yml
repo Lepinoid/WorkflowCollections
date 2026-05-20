@@ -46,6 +46,8 @@ jobs:
       test_ref: ${{ needs.resolve-inputs.outputs.test_ref }}
       gradle_args: check reobfJar
       upload_artifacts: false
+    secrets:
+      checkout_token: ${{ secrets.LEPINOID_TOOLS_READ_TOKEN }}
 
   test-ktlint:
     needs: resolve-inputs
@@ -59,6 +61,8 @@ jobs:
     with:
       test_repo: ${{ needs.resolve-inputs.outputs.test_repo }}
       test_ref: ${{ needs.resolve-inputs.outputs.test_ref }}
+    secrets:
+      checkout_token: ${{ secrets.LEPINOID_TOOLS_READ_TOKEN }}
 
   test-publish-dry-run:
     needs: resolve-inputs
@@ -69,3 +73,5 @@ jobs:
       test_repo: ${{ needs.resolve-inputs.outputs.test_repo }}
       test_ref: ${{ needs.resolve-inputs.outputs.test_ref }}
       dry_run: true
+    secrets:
+      checkout_token: ${{ secrets.LEPINOID_TOOLS_READ_TOKEN }}

@@ -44,6 +44,9 @@ on:
         required: false
       GPG_PASSPHRASE:
         required: false
+      checkout_token:
+        description: "Token used for actions/checkout when test_repo points to a private repository. Falls back to the default GITHUB_TOKEN."
+        required: false
 
 permissions:
   contents: read
@@ -55,6 +58,8 @@ jobs:
     with:
       test_repo: ${{ inputs.test_repo }}
       test_ref: ${{ inputs.test_ref }}
+    secrets:
+      checkout_token: ${{ secrets.checkout_token }}
 
   publish:
     needs: java-version
@@ -93,6 +98,7 @@ jobs:
         with:
           repository: ${{ inputs.test_repo || github.repository }}
           ref: ${{ inputs.test_ref || github.ref }}
+          token: ${{ secrets.checkout_token || github.token }}
           persist-credentials: false
       - uses: gradle/wrapper-validation-action@f9c9c575b8b21b6485636a91ffecd10e558c62f6 # v3.5.0
 

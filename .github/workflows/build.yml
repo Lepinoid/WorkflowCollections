@@ -29,6 +29,10 @@ on:
         description: "Ref of test_repo to checkout (used for workflow self-testing)."
         required: false
         default: ""
+    secrets:
+      checkout_token:
+        description: "Token used for actions/checkout when test_repo points to a private repository. Falls back to the default GITHUB_TOKEN."
+        required: false
 
 permissions:
   contents: read
@@ -40,6 +44,8 @@ jobs:
     with:
       test_repo: ${{ inputs.test_repo }}
       test_ref: ${{ inputs.test_ref }}
+    secrets:
+      checkout_token: ${{ secrets.checkout_token }}
 
   build:
     needs: java-version
@@ -63,6 +69,7 @@ jobs:
         with:
           repository: ${{ inputs.test_repo || github.repository }}
           ref: ${{ inputs.test_ref || github.ref }}
+          token: ${{ secrets.checkout_token || github.token }}
           persist-credentials: false
       - name: Set up JDK ${{ inputs.java_version || needs.java-version.outputs.java_version }}
         uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
