@@ -25,7 +25,7 @@ jobs:
     env:
       TEST_REPO: Lepinoid/LepinoidTools
       # renovate: datasource=git-refs depName=Lepinoid/LepinoidTools currentValue=main
-      TEST_REF: f72f233b846435e7402c6329ac00dd94bef90591
+      TEST_REF: 150f366a0e52635810ca3eb15a4d0448563d4921
     outputs:
       test_repo: ${{ steps.set.outputs.test_repo }}
       test_ref: ${{ steps.set.outputs.test_ref }}
