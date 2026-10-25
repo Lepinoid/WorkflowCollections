@@ -37,6 +37,16 @@ on:
         description: "If true, skip GPG import and the publish step. Used for workflow self-testing."
         required: false
         default: false
+      runs_on:
+        type: string
+        description: "Runner label to use for all jobs."
+        required: false
+        default: ubuntu-latest
+      timeout_minutes:
+        type: number
+        description: "Job timeout in minutes."
+        required: false
+        default: 30
     secrets:
       TOKEN:
         required: false
@@ -58,13 +68,16 @@ jobs:
     with:
       test_repo: ${{ inputs.test_repo }}
       test_ref: ${{ inputs.test_ref }}
+      runs_on: ${{ inputs.runs_on }}
+      timeout_minutes: ${{ inputs.timeout_minutes }}
     secrets:
       checkout_token: ${{ secrets.checkout_token }}
 
   publish:
     needs: java-version
     if: ${{ !cancelled() && !failure() && github.repository_owner == 'Lepinoid' && !contains(github.event.head_commit.message, '[CI-SKIP]') }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runs_on }}
+    timeout-minutes: ${{ inputs.timeout_minutes }}
     steps:
       - name: Validate self-test inputs
         env:

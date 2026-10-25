@@ -2,13 +2,25 @@ name: Validate pull request title
 
 on:
   workflow_call:
+    inputs:
+      runs_on:
+        type: string
+        description: "Runner label to use for all jobs."
+        required: false
+        default: ubuntu-latest
+      timeout_minutes:
+        type: number
+        description: "Job timeout in minutes."
+        required: false
+        default: 30
 
 permissions:
   pull-requests: read
 
 jobs:
   validate-title:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runs_on }}
+    timeout-minutes: ${{ inputs.timeout_minutes }}
     if: ${{ github.repository_owner == 'Lepinoid' }}
     steps:
       - name: Check PR title
