@@ -18,6 +18,9 @@ Simple build task
 | gradle_args      | build       |
 | upload_artifacts | false       |
 | upload_folder    | build/libs/ |
+| runs_on          | ubuntu-latest |
+| timeout_minutes  | 30          |
+| artifact_retention_days | 7     |
 
 
 ## [publish_to_maven-repo.yml](.github/workflows/publish_to_maven-repo.yml)
@@ -35,6 +38,8 @@ Publishing to [maven-repo](https://github.com/Lepinoid/maven-repo) task. Require
 | token_user                 | lepinoid-project    |
 | publish_commit_user_email | lepinoid@gmail.com  |
 | publish_commit_user_name  | lepinoid-project    |
+| runs_on                   | ubuntu-latest       |
+| timeout_minutes           | 30                  |
 
 ### Secrets
 
@@ -42,11 +47,46 @@ Publishing to [maven-repo](https://github.com/Lepinoid/maven-repo) task. Require
 - GPG_PRIVATE_KEY
 - GPG_PASSPHRASE
 
+## [ktlint.yml](.github/workflows/ktlint.yml)
+
+Lint Kotlin code using ktlint.
+
+`Lepinoid/WorkflowCollections/.github/workflows/ktlint.yml@main`
+
+### Inputs
+
+| name            | default       |
+| :-------------- | ------------- |
+| version         | (auto-detect) |
+| runs_on         | ubuntu-latest |
+| timeout_minutes | 30            |
+
+## [get-java-ver.yml](.github/workflows/get-java-ver.yml)
+
+Gets the Java version from `gradle/libs.versions.toml`.
+
+`Lepinoid/WorkflowCollections/.github/workflows/get-java-ver.yml@main`
+
+### Inputs
+
+| name            | default       |
+| :-------------- | ------------- |
+| java_version    | (auto-detect) |
+| runs_on         | ubuntu-latest |
+| timeout_minutes | 30            |
+
 ## [validate-pr.yml](.github/workflows/validate-pr.yml)
 
 Validates pull request title
 
 `Lepinoid/WorkflowCollections/.github/workflows/validate-pr.yml@main`
+
+### Inputs
+
+| name            | default       |
+| :-------------- | ------------- |
+| runs_on         | ubuntu-latest |
+| timeout_minutes | 30            |
 
 # Example
 

@@ -29,6 +29,21 @@ on:
         description: "Ref of test_repo to checkout (used for workflow self-testing)."
         required: false
         default: ""
+      runs_on:
+        type: string
+        description: "Runner label to use for all jobs."
+        required: false
+        default: ubuntu-latest
+      timeout_minutes:
+        type: number
+        description: "Job timeout in minutes."
+        required: false
+        default: 30
+      artifact_retention_days:
+        type: number
+        description: "Number of days to retain uploaded artifacts."
+        required: false
+        default: 7
     secrets:
       checkout_token:
         description: "Token used for actions/checkout when test_repo points to a private repository. Falls back to the default GITHUB_TOKEN."
@@ -44,12 +59,15 @@ jobs:
     with:
       test_repo: ${{ inputs.test_repo }}
       test_ref: ${{ inputs.test_ref }}
+      runs_on: ${{ inputs.runs_on }}
+      timeout_minutes: ${{ inputs.timeout_minutes }}
     secrets:
       checkout_token: ${{ secrets.checkout_token }}
 
   build:
     needs: java-version
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runs_on }}
+    timeout-minutes: ${{ inputs.timeout_minutes }}
     if: ${{ !cancelled() && !failure() && github.repository_owner == 'Lepinoid' && !contains(github.event.head_commit.message, '[CI-SKIP]') }}
     steps:
       - name: Validate self-test inputs
@@ -93,3 +111,4 @@ jobs:
         with:
           name: Artifacts
           path: ${{ inputs.upload_folder }}
+          retention-days: ${{ inputs.artifact_retention_days }}

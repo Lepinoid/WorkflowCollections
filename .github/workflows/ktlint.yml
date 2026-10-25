@@ -18,6 +18,16 @@ on:
         description: "Ref of test_repo to checkout (used for workflow self-testing)."
         required: false
         default: ""
+      runs_on:
+        type: string
+        description: "Runner label to use for all jobs."
+        required: false
+        default: ubuntu-latest
+      timeout_minutes:
+        type: number
+        description: "Job timeout in minutes."
+        required: false
+        default: 30
     secrets:
       checkout_token:
         description: "Token used for actions/checkout when test_repo points to a private repository. Falls back to the default GITHUB_TOKEN."
@@ -28,7 +38,8 @@ permissions:
 
 jobs:
   ktlint:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runs_on }}
+    timeout-minutes: ${{ inputs.timeout_minutes }}
     if: ${{ github.event_name != 'push' || !contains(github.event.head_commit.message, '[CI-SKIP]') }}
     permissions:
       contents: read
